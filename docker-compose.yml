@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     ports:
-      - "8080:8080"
+      - "80:80"
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template
       - ./entrypoint.sh:/docker-entrypoint.sh
