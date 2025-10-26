@@ -4,26 +4,43 @@ events {
 
 http {
     upstream app_backend {
-        server app_blue:3000 max_fails=2 fail_timeout=5s;
-        server app_green:3000 backup max_fails=2 fail_timeout=5s;
+        # Primary based on ACTIVE_POOL - MORE AGGRESSIVE FAILURE DETECTION
+        server app_${ACTIVE_POOL}:${PORT} max_fails=1 fail_timeout=10s;
+        
+        # Both as backup
+        server app_blue:${PORT} backup max_fails=1 fail_timeout=10s;
+        server app_green:${PORT} backup max_fails=1 fail_timeout=10s;
     }
 
     server {
         listen 80;
-        
+        server_name localhost;
+
         location / {
             proxy_pass http://app_backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             
+            # Ensure headers pass through
+            proxy_buffering off;
             proxy_pass_header X-App-Pool;
             proxy_pass_header X-Release-Id;
             
+            # CRITICAL: Retry on the SAME request
             proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
-            proxy_next_upstream_tries 2;
+            proxy_next_upstream_tries 3;  # Increased to 3
+            proxy_next_upstream_timeout 8s;  # Increased timeout
             
-            proxy_connect_timeout 2s;
-            proxy_read_timeout 2s;
+            # Tighter timeouts for quick failover
+            proxy_connect_timeout 1s;  # Reduced from 2s
+            proxy_send_timeout 1s;     # Reduced from 2s
+            proxy_read_timeout 1s;     # Reduced from 2s
+        }
+
+        location /healthz {
+            proxy_pass http://app_backend/healthz;
+            proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
         }
     }
 }
