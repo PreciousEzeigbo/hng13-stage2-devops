@@ -174,43 +174,6 @@ docker logs app_green
 docker stats --no-stream
 ```
 
-## 📸 Screenshots for Submission
-
-This project includes the following verification screenshots:
-
-### 1. Slack Alert – Failover Event
-
-**Screenshot:** Slack channel showing failover alert when Blue fails and Green takes over
-
-- Shows: Pool switch from blue → green
-- Timestamp and action guidance
-- Alert title and color coding
-
-### 2. Slack Alert – High Error Rate
-
-**Screenshot:** Slack channel showing error-rate threshold breach alert
-
-- Shows: Error rate percentage exceeding 2.0% threshold
-- Window size (200 requests)
-- Current pool and timestamp
-
-### 3. NGINX Container Logs
-
-**Screenshot:** Terminal showing nginx access logs with structured fields
-
-- Shows: `pool=`, `release=`, `upstream_status=`, `upstream=`, `request_time=`, `upstream_response_time=`
-- Multiple log lines demonstrating the custom format
-
-### How to Capture Screenshots
-
-```bash
-# For Screenshot #3 (NGINX logs)
-docker exec nginx_proxy tail -20 /var/log/nginx/access.log
-
-# For Screenshots #1 and #2
-# Check your Slack channel after running the chaos tests above
-```
-
 ## 📋 Prerequisites
 
 - Docker 20.10+ (daemon installed and running)
