@@ -16,6 +16,14 @@ envsubst '${ACTIVE_POOL},${PORT}' < /etc/nginx/templates/nginx.conf.template > /
 echo "=== Generated nginx.conf ==="
 cat /etc/nginx/nginx.conf
 
+# Remove symlinks and create real log files
+# This allows the log watcher to tail actual files instead of stdout/stderr
+echo "=== Setting up log files ==="
+rm -f /var/log/nginx/access.log /var/log/nginx/error.log
+touch /var/log/nginx/access.log /var/log/nginx/error.log
+chmod 666 /var/log/nginx/access.log /var/log/nginx/error.log
+echo "Log files created successfully"
+
 # Validate configuration
 echo "=== Testing NGINX configuration ==="
 nginx -t

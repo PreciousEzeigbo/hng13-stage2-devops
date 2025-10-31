@@ -11,11 +11,33 @@ services:
     environment:
       - ACTIVE_POOL=${ACTIVE_POOL:-blue}
       - PORT=${PORT:-3000}
+    volumes:
+      - ./nginx.conf:/etc/nginx.conf
+      - nginx-logs:/var/log/nginx
     depends_on:
       app_blue:
         condition: service_healthy
       app_green:
         condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  alert_watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.watcher
+    container_name: alert_watcher
+    environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - ERROR_RATE_THRESHOLD=${ERROR_RATE_THRESHOLD:-2.0}
+      - WINDOW_SIZE=${WINDOW_SIZE:-200}
+      - ALERT_COOLDOWN_SEC=${ALERT_COOLDOWN_SEC:-300}
+      - MAINTENANCE_MODE=${MAINTENANCE_MODE:-false}
+    volumes:
+      - nginx-logs:/var/log/nginx:ro
+    depends_on:
+      - nginx
     networks:
       - app_network
     restart: unless-stopped
@@ -55,6 +77,9 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
+
+volumes:
+  nginx-logs:
 
 networks:
   app_network:

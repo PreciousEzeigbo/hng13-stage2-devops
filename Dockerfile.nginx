@@ -3,6 +3,12 @@ FROM nginx:alpine
 # Install envsubst
 RUN apk add --no-cache gettext
 
+# Remove default symlinks so logs write to actual files (not stdout/stderr)
+# This allows the log watcher to tail the real file
+RUN rm -f /var/log/nginx/access.log /var/log/nginx/error.log && \
+    touch /var/log/nginx/access.log /var/log/nginx/error.log && \
+    chown nginx:nginx /var/log/nginx/access.log /var/log/nginx/error.log
+
 # Copy template
 COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
